@@ -94,7 +94,7 @@ function visibleBooks() {
 
   return books
     .filter((b) => !genre || b.genre === genre)
-    .filter((b) => !q || [b.title, b.author, b.genre, b.notes].some((f) => f?.toLowerCase().includes(q)))
+    .filter((b) => !q || [b.title, b.author, b.genre, b.notes, b.isbn, b.added_by].some((f) => f?.toLowerCase().includes(q)))
     .sort((a, b) => {
       const x = a[sortKey], y = b[sortKey];
       if (x == null) return 1;
@@ -126,6 +126,10 @@ function render() {
         <p class="meta">${escapeHtml(b.author)}${b.year ? ` · ${b.year}` : ""}</p>
         ${b.genre ? `<span class="tag">${escapeHtml(b.genre)}</span>` : ""}
         ${b.notes ? `<p class="notes">${escapeHtml(b.notes)}</p>` : ""}
+        <p class="small">
+          ${b.isbn ? `ISBN ${escapeHtml(b.isbn)}<br>` : ""}
+          ${b.added_by ? `Added by ${escapeHtml(b.added_by)}` : ""}
+        </p>
         ${user?.id === b.created_by ? `
           <div class="actions">
             <button data-edit="${b.id}">Edit</button>

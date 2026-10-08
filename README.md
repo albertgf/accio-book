@@ -14,7 +14,7 @@ The site is static (HTML, CSS, and JavaScript, with no build step). Anyone can b
 ## 1. Create the database (Supabase)
 
 1. Sign up at https://supabase.com and create a **New project** (Free plan).
-2. Open **SQL Editor → New query**, paste the contents of `schema.sql`, and click **Run**.
+2. Open **SQL Editor → New query**, paste the contents of `schema.sql`, and click **Run**. If you set the database up before `migrations/` existed, run each file in `migrations/` the same way.
 3. Go to **Project Settings → API Keys**. Copy the **Publishable key** (or the legacy **anon** key) and the **Project URL** into `config.js`.
 
 ### Login

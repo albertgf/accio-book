@@ -9,7 +9,9 @@ create table if not exists public.books (
   genre       text,
   notes       text check (char_length(notes) <= 2000),
   created_at  timestamptz not null default now(),
-  created_by  uuid not null default auth.uid() references auth.users (id) on delete cascade
+  created_by  uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  -- Shown on the card as "added by". The part of the user's email before "@".
+  added_by    text default split_part(auth.jwt() ->> 'email', '@', 1)
 );
 
 alter table public.books enable row level security;
@@ -22,13 +24,15 @@ create policy "books are public"
 -- Only signed-in users can add books, and only as themselves.
 create policy "signed-in users can add"
   on public.books for insert to authenticated
-  with check (auth.uid() = created_by);
+  with check (auth.uid() = created_by
+              and added_by = split_part(auth.jwt() ->> 'email', '@', 1));
 
 -- Users can only change or remove the books they added.
 create policy "owners can update"
   on public.books for update to authenticated
   using (auth.uid() = created_by)
-  with check (auth.uid() = created_by);
+  with check (auth.uid() = created_by
+              and added_by = split_part(auth.jwt() ->> 'email', '@', 1));
 
 create policy "owners can delete"
   on public.books for delete to authenticated
