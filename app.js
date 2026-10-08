@@ -112,6 +112,13 @@ function coverHtml(b) {
     onerror="this.outerHTML='<div class=&quot;cover&quot;>📕</div>'">`;
 }
 
+// The edition page when we have an ISBN, otherwise an Open Library search for title + author.
+function openLibraryUrl(b) {
+  if (b.isbn) return `https://openlibrary.org/isbn/${encodeURIComponent(b.isbn.replace(/-/g, ""))}`;
+  const q = new URLSearchParams({ title: b.title, author: b.author });
+  return `https://openlibrary.org/search?${q}`;
+}
+
 function render() {
   const list = visibleBooks();
   els.status.textContent = books.length === 0
@@ -119,10 +126,10 @@ function render() {
     : `${list.length} of ${books.length} books`;
 
   els.list.innerHTML = list.map((b) => `
-    <li class="book">
+    <li class="book" data-url="${escapeHtml(openLibraryUrl(b))}">
       ${coverHtml(b)}
       <div>
-        <h3>${escapeHtml(b.title)}</h3>
+        <h3><a href="${escapeHtml(openLibraryUrl(b))}" target="_blank" rel="noopener">${escapeHtml(b.title)}</a></h3>
         <p class="meta">${escapeHtml(b.author)}${b.year ? ` · ${b.year}` : ""}</p>
         ${b.genre ? `<span class="tag">${escapeHtml(b.genre)}</span>` : ""}
         ${b.notes ? `<p class="notes">${escapeHtml(b.notes)}</p>` : ""}
@@ -175,6 +182,12 @@ els.form.addEventListener("submit", async (e) => {
 });
 
 els.list.addEventListener("click", async (e) => {
+  // Tapping anywhere on a card (except its buttons and the title link itself) opens Open Library.
+  const card = e.target.closest(".book");
+  if (card && !e.target.closest("button, a")) {
+    window.open(card.dataset.url, "_blank", "noopener");
+    return;
+  }
   const editId = e.target.dataset.edit;
   const delId = e.target.dataset.delete;
   if (editId) openDialog(books.find((b) => b.id == editId));
