@@ -14,7 +14,8 @@ header { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-betwe
 h1 { margin: 0; font-size: 1.5rem; }
 main { padding: 1.5rem clamp(1rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto; }
 #auth { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
-#auth form { display: flex; gap: .5rem; }
+#auth form { display: flex; flex-wrap: wrap; gap: .5rem; }
+#auth input { width: 9rem; }
 #user-email { color: var(--muted); font-size: .9rem; }
 #banner { background: #fff3cd; color: #664d03; padding: .75rem clamp(1rem, 4vw, 3rem); }
 
