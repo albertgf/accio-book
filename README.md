@@ -9,7 +9,7 @@ A small book catalog that runs entirely on free tiers:
 | Login | Supabase Auth (email + password) | 50k monthly users |
 | Cover images | Open Library Covers API | Free, no key needed |
 
-The site is static (HTML, CSS, and JavaScript, with no build step). Anyone can browse it. Signed-in users can add books and can edit or delete only the books they added. Row Level Security in Postgres enforces those rules (see `schema.sql`), so it's safe for the anon key to be public.
+The site is static (HTML, CSS, and JavaScript, with no build step). Only signed-in users can see the catalog. They can add books and can edit or delete only the books they added. Row Level Security in Postgres enforces those rules (see `schema.sql`), so it's safe for the anon key to be public.
 
 ## 1. Create the database (Supabase)
 
@@ -19,9 +19,12 @@ The site is static (HTML, CSS, and JavaScript, with no build step). Anyone can b
 
 ### Login
 
-Users sign up and sign in with their email and a password. By default, Supabase sends a confirmation email after sign-up. The built-in sender only sends a few emails per hour. To skip confirmation, turn off **Confirm email** under **Authentication → Sign In / Providers → Email**.
+There's no sign-up on the site. Only people you add can sign in:
 
-**Invite-only:** to stop strangers from creating accounts, turn off **Allow new users to sign up** under **Authentication → Sign In / Providers**. Then add users yourself under **Authentication → Users → Add user**, with **Auto Confirm User** checked.
+1. Go to **Authentication → Sign In / Providers** and turn **off** "Allow new users to sign up". This also blocks sign-ups made by calling the API directly.
+2. Add each user under **Authentication → Users → Add user → Create new user**. Enter their email and a password, and check **Auto Confirm User**.
+
+To reset someone's password, open their user in **Authentication → Users**.
 
 ## 2. Try it locally
 

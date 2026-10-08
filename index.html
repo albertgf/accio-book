@@ -15,8 +15,7 @@
         <input type="email" id="login-user" placeholder="you@example.com" autocomplete="username" required>
         <input type="password" id="login-pass" placeholder="password" autocomplete="current-password"
                required minlength="6">
-        <button type="submit" value="signin">Sign in</button>
-        <button type="submit" value="signup">Sign up</button>
+        <button type="submit">Sign in</button>
       </form>
       <button id="logout-btn" hidden>Sign out</button>
     </div>
@@ -24,7 +23,12 @@
 
   <div id="banner" hidden></div>
 
-  <main>
+  <section id="signed-out">
+    <h2>Welcome 👋</h2>
+    <p>Sign in to browse the book catalog. Accounts are created by the site admin.</p>
+  </section>
+
+  <main hidden>
     <div class="toolbar">
       <input type="search" id="search" placeholder="Search title, author, ISBN…">
       <select id="genre-filter"><option value="">All genres</option></select>

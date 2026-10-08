@@ -5,7 +5,7 @@ const $ = (sel) => document.querySelector(sel);
 const els = {
   banner: $("#banner"), status: $("#status"), list: $("#books"),
   search: $("#search"), genre: $("#genre-filter"), sort: $("#sort"), genres: $("#genres"),
-  addBtn: $("#add-btn"), loginForm: $("#login-form"), loginUser: $("#login-user"), loginPass: $("#login-pass"),
+  main: $("main"), signedOut: $("#signed-out"), addBtn: $("#add-btn"), loginForm: $("#login-form"), loginUser: $("#login-user"), loginPass: $("#login-pass"),
   logoutBtn: $("#logout-btn"), userEmail: $("#user-email"),
   dialog: $("#book-dialog"), form: $("#book-form"), dialogTitle: $("#dialog-title"),
   cancelBtn: $("#cancel-btn"),
@@ -31,30 +31,35 @@ function escapeHtml(s) {
 // ---------- Auth ----------
 
 function setUser(u) {
+  const changed = user?.id !== u?.id;
   user = u;
   els.userEmail.textContent = u ? `Signed in as ${u.email}` : "";
   els.loginForm.hidden = !!u;
   els.logoutBtn.hidden = !u;
   els.addBtn.hidden = !u;
+  // The catalog is only for signed-in users (also enforced by the database, see schema.sql).
+  els.main.hidden = !u;
+  els.signedOut.hidden = !!u;
+  if (!changed) return;
+  books = [];
   render();
+  // Deferred: Supabase advises against calling it from inside onAuthStateChange.
+  if (u) setTimeout(loadBooks, 0);
 }
 
 els.loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const buttons = els.loginForm.querySelectorAll("button");
-  buttons.forEach((b) => (b.disabled = true));
-  const creds = { email: els.loginUser.value.trim(), password: els.loginPass.value };
-  const isSignup = e.submitter?.value === "signup";
-  const { data, error } = isSignup
-    ? await db.auth.signUp(creds)
-    : await db.auth.signInWithPassword(creds);
-  buttons.forEach((b) => (b.disabled = false));
+  const btn = els.loginForm.querySelector("button");
+  btn.disabled = true;
+  const { error } = await db.auth.signInWithPassword({
+    email: els.loginUser.value.trim(),
+    password: els.loginPass.value,
+  });
+  btn.disabled = false;
 
   if (error) {
     const msg = error.message === "Invalid login credentials" ? "Wrong email or password." : error.message;
-    showBanner(`${isSignup ? "Sign-up" : "Sign-in"} failed: ${msg}`);
-  } else if (isSignup && !data.session) {
-    showBanner("Account created! Check your inbox to confirm your email, then sign in.");
+    showBanner(`Sign-in failed: ${msg}`);
   } else {
     showBanner("");
     els.loginForm.reset();
@@ -122,7 +127,7 @@ function openLibraryUrl(b) {
 function render() {
   const list = visibleBooks();
   els.status.textContent = books.length === 0
-    ? (configured ? "No books yet." + (user ? " Add the first one!" : " Sign in to add one.") : "")
+    ? (configured ? "No books yet." + (user ? " Add the first one!" : "") : "")
     : `${list.length} of ${books.length} books`;
 
   els.list.innerHTML = list.map((b) => `
@@ -205,8 +210,7 @@ els.list.addEventListener("click", async (e) => {
 if (!configured) {
   showBanner("Not connected yet: put your Supabase URL and anon key in config.js (see README).");
   els.loginForm.hidden = true;
-  els.status.textContent = "";
+  els.signedOut.hidden = true;
 } else {
   db.auth.onAuthStateChange((_event, session) => setUser(session?.user ?? null));
-  loadBooks();
 }

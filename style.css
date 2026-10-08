@@ -30,6 +30,8 @@ button:disabled { opacity: .6; cursor: default; }
 .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
 .toolbar #search { flex: 1 1 240px; }
 .toolbar select { width: auto; }
+#signed-out { text-align: center; padding: 4rem 1rem; color: var(--muted); }
+#signed-out h2 { color: var(--text); }
 #status { color: var(--muted); }
 
 #books { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;

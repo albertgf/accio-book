@@ -16,9 +16,9 @@ create table if not exists public.books (
 
 alter table public.books enable row level security;
 
--- Anyone (even logged out) can browse the catalog.
-create policy "books are public"
-  on public.books for select
+-- Only signed-in users can see the catalog.
+create policy "signed-in users can read"
+  on public.books for select to authenticated
   using (true);
 
 -- Only signed-in users can add books, and only as themselves.
