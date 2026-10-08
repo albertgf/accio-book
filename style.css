@@ -1,0 +1,51 @@
+:root {
+  --bg: #f7f5f0; --card: #fff; --text: #222; --muted: #6b6b6b;
+  --accent: #8a4b2a; --border: #e2ddd3; --danger: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #1a1816; --card: #252220; --text: #eee; --muted: #a39d94;
+          --accent: #e0a37c; --border: #3a3633; --danger: #f2827a; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; font: 16px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--text); }
+header { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;
+         padding: 1rem clamp(1rem, 4vw, 3rem); border-bottom: 1px solid var(--border); }
+h1 { margin: 0; font-size: 1.5rem; }
+main { padding: 1.5rem clamp(1rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto; }
+#auth { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+#auth form { display: flex; gap: .5rem; }
+#user-email { color: var(--muted); font-size: .9rem; }
+#banner { background: #fff3cd; color: #664d03; padding: .75rem clamp(1rem, 4vw, 3rem); }
+
+input, select, textarea, button { font: inherit; color: inherit; }
+input, select, textarea { padding: .5rem .6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); width: 100%; }
+button { padding: .5rem .9rem; border: 1px solid var(--border); border-radius: 6px; background: var(--card); cursor: pointer; }
+button.primary, #add-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .6; cursor: default; }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.toolbar #search { flex: 1 1 240px; }
+.toolbar select { width: auto; }
+#status { color: var(--muted); }
+
+#books { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
+         grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.book { display: flex; gap: .9rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: .9rem; }
+.cover { width: 70px; height: 105px; flex-shrink: 0; border-radius: 4px; object-fit: cover;
+         background: var(--border); display: grid; place-items: center; font-size: 1.8rem; }
+.book h3 { margin: 0; font-size: 1.05rem; line-height: 1.3; overflow-wrap: anywhere; }
+.book .meta { color: var(--muted); font-size: .9rem; margin: .2rem 0; }
+.book .notes { font-size: .9rem; margin: .4rem 0 0; overflow-wrap: anywhere; }
+.tag { display: inline-block; font-size: .75rem; padding: .05rem .5rem; border-radius: 99px; border: 1px solid var(--border); }
+.actions { display: flex; gap: .4rem; margin-top: .5rem; }
+.actions button { padding: .2rem .6rem; font-size: .85rem; }
+
+dialog { border: 1px solid var(--border); border-radius: 12px; background: var(--card); color: var(--text); width: min(480px, calc(100vw - 2rem)); }
+dialog::backdrop { background: rgb(0 0 0 / .4); }
+dialog h2 { margin-top: 0; }
+dialog label { display: block; margin-bottom: .7rem; font-size: .9rem; }
+dialog .row { display: flex; gap: .6rem; }
+dialog .row label { flex: 1; }
+dialog menu { display: flex; justify-content: flex-end; gap: .5rem; padding: 0; margin: 1rem 0 0; }
