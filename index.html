@@ -12,8 +12,7 @@
     <div id="auth">
       <span id="user-email"></span>
       <form id="login-form">
-        <input id="login-user" placeholder="username" autocomplete="username" required
-               pattern="[A-Za-z0-9_.\-]{3,30}" title="3–30 letters, numbers, _ . -">
+        <input type="email" id="login-user" placeholder="you@example.com" autocomplete="username" required>
         <input type="password" id="login-pass" placeholder="password" autocomplete="current-password"
                required minlength="6">
         <button type="submit" value="signin">Sign in</button>

@@ -1,5 +1,5 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
-import { SUPABASE_URL, SUPABASE_ANON_KEY, USERNAME_EMAIL_DOMAIN } from "./config.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const $ = (sel) => document.querySelector(sel);
 const els = {
@@ -32,22 +32,18 @@ function escapeHtml(s) {
 
 function setUser(u) {
   user = u;
-  els.userEmail.textContent = u ? `Signed in as ${toUsername(u.email)}` : "";
+  els.userEmail.textContent = u ? `Signed in as ${u.email}` : "";
   els.loginForm.hidden = !!u;
   els.logoutBtn.hidden = !u;
   els.addBtn.hidden = !u;
   render();
 }
 
-// Supabase Auth needs an email, so each username maps to a fake one that never receives mail.
-const toEmail = (username) => `${username.toLowerCase()}@${USERNAME_EMAIL_DOMAIN}`;
-const toUsername = (email) => email?.split("@")[0] ?? "";
-
 els.loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const buttons = els.loginForm.querySelectorAll("button");
   buttons.forEach((b) => (b.disabled = true));
-  const creds = { email: toEmail(els.loginUser.value.trim()), password: els.loginPass.value };
+  const creds = { email: els.loginUser.value.trim(), password: els.loginPass.value };
   const isSignup = e.submitter?.value === "signup";
   const { data, error } = isSignup
     ? await db.auth.signUp(creds)
@@ -55,10 +51,10 @@ els.loginForm.addEventListener("submit", async (e) => {
   buttons.forEach((b) => (b.disabled = false));
 
   if (error) {
-    const msg = error.message === "Invalid login credentials" ? "Wrong username or password." : error.message;
+    const msg = error.message === "Invalid login credentials" ? "Wrong email or password." : error.message;
     showBanner(`${isSignup ? "Sign-up" : "Sign-in"} failed: ${msg}`);
   } else if (isSignup && !data.session) {
-    showBanner("Account created, but email confirmation is on in Supabase. Turn it off (see README).");
+    showBanner("Account created! Check your inbox to confirm your email, then sign in.");
   } else {
     showBanner("");
     els.loginForm.reset();

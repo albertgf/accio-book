@@ -6,7 +6,7 @@ A small book catalog that runs entirely on free tiers:
 |---|---|---|
 | Hosting | GitHub Pages | Free for public repos |
 | Database + REST API | Supabase (Postgres) | 500 MB DB, 2 projects |
-| Login | Supabase Auth (username + password) | 50k monthly users |
+| Login | Supabase Auth (email + password) | 50k monthly users |
 | Cover images | Open Library Covers API | Free, no key needed |
 
 The site is static (HTML, CSS, and JavaScript, with no build step). Anyone can browse it. Signed-in users can add books and can edit or delete only the books they added. Row Level Security in Postgres enforces those rules (see `schema.sql`), so it's safe for the anon key to be public.
@@ -16,13 +16,12 @@ The site is static (HTML, CSS, and JavaScript, with no build step). Anyone can b
 1. Sign up at https://supabase.com and create a **New project** (Free plan).
 2. Open **SQL Editor → New query**, paste the contents of `schema.sql`, and click **Run**.
 3. Go to **Project Settings → API Keys**. Copy the **Publishable key** (or the legacy **anon** key) and the **Project URL** into `config.js`.
-4. Go to **Authentication → Sign In / Providers → Email** and turn **off** "Confirm email". Then save.
 
-### How username login works
+### Login
 
-Supabase Auth only knows about emails and phones. So a username like `albert` is stored as the fake email `albert@users.bookcatalog.app` (see `USERNAME_EMAIL_DOMAIN` in `config.js`). Users only ever type a username and password. Because email confirmation is off, nothing is ever sent to these addresses. One consequence: there's no "forgot password" email. Reset a password in the dashboard under **Authentication → Users**.
+Users sign up and sign in with their email and a password. By default, Supabase sends a confirmation email after sign-up. The built-in sender only sends a few emails per hour. To skip confirmation, turn off **Confirm email** under **Authentication → Sign In / Providers → Email**.
 
-**Invite-only:** to stop strangers from creating accounts, turn off **Allow new users to sign up** under **Authentication → Sign In / Providers**. Then create users yourself under **Authentication → Users → Add user**, with the email `<username>@users.bookcatalog.app` and **Auto Confirm User** checked.
+**Invite-only:** to stop strangers from creating accounts, turn off **Allow new users to sign up** under **Authentication → Sign In / Providers**. Then add users yourself under **Authentication → Users → Add user**, with **Auto Confirm User** checked.
 
 ## 2. Try it locally
 
@@ -50,4 +49,4 @@ Cloudflare Pages and Netlify also work. Point either one at the repo with no bui
 ## Notes
 
 - **Inactive projects pause:** Supabase pauses free projects after about a week with no activity. Click **Restore** in the dashboard to bring yours back.
-- **Restricting who can add books:** change the insert policy in `schema.sql`, for example to `with check (auth.uid() = created_by and auth.email() = 'albert@users.bookcatalog.app')`.
+- **Restricting who can add books:** change the insert policy in `schema.sql`, for example to `with check (auth.uid() = created_by and auth.email() = 'you@example.com')`.
