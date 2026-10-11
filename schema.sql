@@ -11,7 +11,9 @@ create table if not exists public.books (
   created_at  timestamptz not null default now(),
   created_by  uuid not null default auth.uid() references auth.users (id) on delete cascade,
   -- Shown on the card as "added by". The part of the user's email before "@".
-  added_by    text default split_part(auth.jwt() ->> 'email', '@', 1)
+  added_by    text default split_part(auth.jwt() ->> 'email', '@', 1),
+  -- Everyone signed in sees whether a book is out; who has it lives in book_loans (owner-only).
+  loaned      boolean not null default false
 );
 
 alter table public.books enable row level security;
@@ -37,3 +39,18 @@ create policy "owners can update"
 create policy "owners can delete"
   on public.books for delete to authenticated
   using (auth.uid() = created_by);
+
+-- Private "loaned to" notes. A separate table because RLS hides rows, not columns.
+create table if not exists public.book_loans (
+  book_id   bigint primary key references public.books (id) on delete cascade,
+  owner     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  loaned_to text check (char_length(loaned_to) <= 200)
+);
+
+alter table public.book_loans enable row level security;
+
+create policy "owners manage their loan notes"
+  on public.book_loans for all to authenticated
+  using (owner = auth.uid())
+  with check (owner = auth.uid()
+              and exists (select 1 from public.books b where b.id = book_id and b.created_by = auth.uid()));

@@ -51,5 +51,6 @@ Cloudflare Pages and Netlify also work. Point either one at the repo with no bui
 
 ## Notes
 
+- **Loans:** owners can tick **Loaned** on their own books and note who has them, right on the list. Everyone signed in sees an "On loan" badge, but only the owner sees the name (it's kept in a separate owner-only table, `book_loans`).
 - **Inactive projects pause:** Supabase pauses free projects after about a week with no activity. Click **Restore** in the dashboard to bring yours back.
 - **Restricting who can add books:** change the insert policy in `schema.sql`, for example to `with check (auth.uid() = created_by and auth.email() = 'you@example.com')`.

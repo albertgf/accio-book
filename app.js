@@ -72,12 +72,17 @@ els.logoutBtn.addEventListener("click", () => db.auth.signOut());
 
 async function loadBooks() {
   els.status.textContent = "Loading…";
-  const { data, error } = await db.from("books").select("*");
-  if (error) {
-    els.status.textContent = `Could not load books: ${error.message}`;
+  const [booksRes, loansRes] = await Promise.all([
+    db.from("books").select("*"),
+    // RLS only returns the current user's own loan notes.
+    db.from("book_loans").select("book_id, loaned_to"),
+  ]);
+  if (booksRes.error) {
+    els.status.textContent = `Could not load books: ${booksRes.error.message}`;
     return;
   }
-  books = data;
+  const loanedTo = new Map((loansRes.data ?? []).map((l) => [l.book_id, l.loaned_to]));
+  books = booksRes.data.map((b) => ({ ...b, loaned_to: loanedTo.get(b.id) ?? null }));
   refreshGenres();
   render();
 }
@@ -99,7 +104,7 @@ function visibleBooks() {
 
   return books
     .filter((b) => !genre || b.genre === genre)
-    .filter((b) => !q || [b.title, b.author, b.genre, b.notes, b.isbn, b.added_by].some((f) => f?.toLowerCase().includes(q)))
+    .filter((b) => !q || [b.title, b.author, b.genre, b.notes, b.isbn, b.added_by, b.loaned_to].some((f) => f?.toLowerCase().includes(q)))
     .sort((a, b) => {
       const x = a[sortKey], y = b[sortKey];
       if (x == null) return 1;
@@ -124,6 +129,16 @@ function openLibraryUrl(b) {
   return `https://openlibrary.org/search?${q}`;
 }
 
+function loanHtml(b) {
+  if (user?.id !== b.created_by) return b.loaned ? `<span class="tag loaned">On loan</span>` : "";
+  return `
+    <div class="loan">
+      <label><input type="checkbox" data-loan-toggle="${b.id}" ${b.loaned ? "checked" : ""}> Loaned</label>
+      ${b.loaned ? `<input class="loan-to" data-loan-to="${b.id}" maxlength="200"
+        placeholder="To whom? (optional)" value="${escapeHtml(b.loaned_to)}">` : ""}
+    </div>`;
+}
+
 function render() {
   const list = visibleBooks();
   els.status.textContent = books.length === 0
@@ -137,6 +152,7 @@ function render() {
         <h3><a href="${escapeHtml(openLibraryUrl(b))}" target="_blank" rel="noopener">${escapeHtml(b.title)}</a></h3>
         <p class="meta">${escapeHtml(b.author)}${b.year ? ` · ${b.year}` : ""}</p>
         ${b.genre ? `<span class="tag">${escapeHtml(b.genre)}</span>` : ""}
+        ${loanHtml(b)}
         ${b.notes ? `<p class="notes">${escapeHtml(b.notes)}</p>` : ""}
         <p class="small">
           ${b.isbn ? `ISBN ${escapeHtml(b.isbn)}<br>` : ""}
@@ -189,7 +205,7 @@ els.form.addEventListener("submit", async (e) => {
 els.list.addEventListener("click", async (e) => {
   // Tapping anywhere on a card (except its buttons and the title link itself) opens Open Library.
   const card = e.target.closest(".book");
-  if (card && !e.target.closest("button, a")) {
+  if (card && !e.target.closest("button, a, input, label")) {
     window.open(card.dataset.url, "_blank", "noopener");
     return;
   }
@@ -200,6 +216,39 @@ els.list.addEventListener("click", async (e) => {
     const { error } = await db.from("books").delete().eq("id", delId);
     if (error) return alert(`Delete failed: ${error.message}`);
     loadBooks();
+  }
+});
+
+// Loan controls on the cards: save straight away, no dialog.
+els.list.addEventListener("change", async (e) => {
+  const toggleId = e.target.dataset.loanToggle;
+  const toId = e.target.dataset.loanTo;
+
+  if (toggleId) {
+    const b = books.find((x) => x.id == toggleId);
+    const prev = { loaned: b.loaned, loaned_to: b.loaned_to };
+    b.loaned = e.target.checked;
+    if (!b.loaned) b.loaned_to = null;
+    render();
+    if (b.loaned) els.list.querySelector(`[data-loan-to="${b.id}"]`)?.focus();
+
+    const { error } = await db.from("books").update({ loaned: b.loaned }).eq("id", b.id);
+    const { error: noteError } = !error && !b.loaned
+      ? await db.from("book_loans").delete().eq("book_id", b.id)
+      : {};
+    if (error || noteError) {
+      Object.assign(b, prev);
+      render();
+      alert(`Could not update loan: ${(error ?? noteError).message}`);
+    }
+  }
+
+  if (toId) {
+    const b = books.find((x) => x.id == toId);
+    const loanedTo = e.target.value.trim() || null;
+    const { error } = await db.from("book_loans").upsert({ book_id: b.id, loaned_to: loanedTo });
+    if (error) return alert(`Could not save who has it: ${error.message}`);
+    b.loaned_to = loanedTo;
   }
 });
 
