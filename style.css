@@ -50,9 +50,11 @@ button:disabled { opacity: .6; cursor: default; }
 .loan { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin-top: .4rem; font-size: .85rem; color: var(--muted); }
 .loan label { display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; }
 .loan input[type=checkbox] { width: auto; margin: 0; accent-color: var(--accent); }
-.loan-form { display: flex; gap: .3rem; }
-.loan-form .loan-to { width: 8rem; padding: .2rem .4rem; font-size: .8rem; }
-.loan-form button { padding: .2rem .55rem; font-size: .8rem; }
+/* Let the text column and the loan form shrink to the card instead of overflowing it. */
+.book > div { flex: 1; min-width: 0; }
+.loan-form { display: flex; gap: .3rem; flex: 1 1 100%; min-width: 0; }
+.loan-form .loan-to { flex: 1; min-width: 0; width: auto; max-width: 10rem; padding: .2rem .4rem; font-size: .8rem; }
+.loan-form button { flex-shrink: 0; padding: .2rem .55rem; font-size: .8rem; }
 .tag.loaned { color: var(--accent); border-color: var(--accent); margin-left: .25rem; }
 .tag { display: inline-block; font-size: .75rem; padding: .05rem .5rem; border-radius: 99px; border: 1px solid var(--border); }
 .actions { display: flex; gap: .4rem; margin-top: .5rem; }
