@@ -134,8 +134,12 @@ function loanHtml(b) {
   return `
     <div class="loan">
       <label><input type="checkbox" data-loan-toggle="${b.id}" ${b.loaned ? "checked" : ""}> Loaned</label>
-      ${b.loaned ? `<input class="loan-to" data-loan-to="${b.id}" maxlength="200"
-        placeholder="To whom? (optional)" value="${escapeHtml(b.loaned_to)}">` : ""}
+      ${b.loaned ? `
+        <form class="loan-form" data-loan-form="${b.id}">
+          <input class="loan-to" name="loaned_to" maxlength="200"
+            placeholder="To whom?" value="${escapeHtml(b.loaned_to)}">
+          <button type="submit">Save</button>
+        </form>` : ""}
     </div>`;
 }
 
@@ -219,18 +223,16 @@ els.list.addEventListener("click", async (e) => {
   }
 });
 
-// Loan controls on the cards: save straight away, no dialog.
+// Loan controls on the cards: no dialog needed.
 els.list.addEventListener("change", async (e) => {
   const toggleId = e.target.dataset.loanToggle;
-  const toId = e.target.dataset.loanTo;
-
   if (toggleId) {
     const b = books.find((x) => x.id == toggleId);
     const prev = { loaned: b.loaned, loaned_to: b.loaned_to };
     b.loaned = e.target.checked;
     if (!b.loaned) b.loaned_to = null;
     render();
-    if (b.loaned) els.list.querySelector(`[data-loan-to="${b.id}"]`)?.focus();
+    if (b.loaned) els.list.querySelector(`[data-loan-form="${b.id}"] input`)?.focus();
 
     const { error } = await db.from("books").update({ loaned: b.loaned }).eq("id", b.id);
     const { error: noteError } = !error && !b.loaned
@@ -242,14 +244,23 @@ els.list.addEventListener("change", async (e) => {
       alert(`Could not update loan: ${(error ?? noteError).message}`);
     }
   }
+});
 
-  if (toId) {
-    const b = books.find((x) => x.id == toId);
-    const loanedTo = e.target.value.trim() || null;
-    const { error } = await db.from("book_loans").upsert({ book_id: b.id, loaned_to: loanedTo });
-    if (error) return alert(`Could not save who has it: ${error.message}`);
-    b.loaned_to = loanedTo;
-  }
+// "To whom" is saved with its Save button (or Enter).
+els.list.addEventListener("submit", async (e) => {
+  const form = e.target.closest("[data-loan-form]");
+  if (!form) return;
+  e.preventDefault();
+  const b = books.find((x) => x.id == form.dataset.loanForm);
+  const btn = form.querySelector("button");
+  const loanedTo = form.elements.loaned_to.value.trim() || null;
+  btn.disabled = true;
+  const { error } = await db.from("book_loans").upsert({ book_id: b.id, loaned_to: loanedTo });
+  btn.disabled = false;
+  if (error) return alert(`Could not save who has it: ${error.message}`);
+  b.loaned_to = loanedTo;
+  btn.textContent = "Saved ✓";
+  setTimeout(() => (btn.textContent = "Save"), 1500);
 });
 
 [els.search, els.genre, els.sort].forEach((el) => el.addEventListener("input", render));
